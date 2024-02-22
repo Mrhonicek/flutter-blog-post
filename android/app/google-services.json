@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "777123835612",
+    "project_id": "blog-postdb-cb9ce",
+    "storage_bucket": "blog-postdb-cb9ce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777123835612:android:558ab7e8db766cc8e74e19",
+        "android_client_info": {
+          "package_name": "com.example.flutter_blog_post_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe_NURCeHoHQMqmUXLlONor7UuBbh-4wM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
