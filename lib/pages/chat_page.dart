@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/chat/chat_service.dart';
@@ -28,6 +31,7 @@ class _ChatPageState extends State<ChatPage> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final ChatService _chatService = ChatService();
   final FocusNode _textFieldFocusNode = FocusNode();
+  PlatformFile? _selectedFile;
 
   late ScrollController _listScrollController;
 
@@ -247,6 +251,7 @@ class _ChatPageState extends State<ChatPage> {
                             },
                             child: ChatBubble(
                               message: data["message"],
+                              imageUrl: data["image_url"],
                             ),
                           ),
                         ),
@@ -322,36 +327,144 @@ class _ChatPageState extends State<ChatPage> {
       ),
       padding: const EdgeInsets.all(10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Expanded(
-            child: MyTextField(
-              controller: _messageController,
-              focusNode: _textFieldFocusNode,
-              hintText: "Enter Message",
-              obscureText: false,
-              icon: Icons.card_giftcard,
+          if (_selectedFile == null)
+            Expanded(
+              child: MyTextField(
+                controller: _messageController,
+                focusNode: _textFieldFocusNode,
+                hintText: "Enter Message",
+                obscureText: false,
+                icon: Icons.card_giftcard,
+              ),
             ),
+          const SizedBox(width: 10),
+          Row(
+            children: [
+              _selectedFileWidget,
+              IconButton(
+                onPressed: _pickFile,
+                icon: const Icon(Icons.attach_file_sharp),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: sendMessage,
-            icon: const Icon(
-              Icons.send_outlined,
-              size: 40,
-            ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: sendMessage,
+                icon: const Icon(
+                  Icons.send_outlined,
+                  size: 40,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  void sendMessage() async {
-    if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(
-        widget.receiverUserId,
-        _messageController.text,
+  Widget get _selectedFileWidget {
+    if (_selectedFile != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+            constraints: const BoxConstraints(maxWidth: 230),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+              borderRadius: BorderRadius.circular(5.0),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              reverse: true, // Start text at the end
+              child: Row(
+                children: [
+                  const SizedBox(width: 5),
+                  Text(
+                    _selectedFile!.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 5),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    iconSize: 20,
+                    onPressed: () => setState(() {
+                      _selectedFile = null;
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
-      _messageController.clear();
-      // Scroll to the end of the list
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.any,
+    );
+
+    if (result != null) {
+      final file = result.files.single;
+      setState(() {
+        _selectedFile = file;
+      });
+      // Handle the selected file (upload, etc.)
+    }
+  }
+
+  void sendMessage() async {
+    if (_messageController.text.isNotEmpty || _selectedFile != null) {
+      // Check if a file is selected
+      if (_selectedFile != null) {
+        final filePath = _selectedFile!.path;
+
+        if (filePath != null) {
+          print(filePath);
+          final file = File(filePath);
+
+          try {
+            await _chatService.sendMessage(
+              widget.receiverUserId,
+              _messageController.text,
+              file,
+            );
+
+            // Clear the selected file and message text after successful upload
+            setState(() {
+              _selectedFile = null;
+              _messageController.clear();
+            });
+          } catch (error) {
+            // Handle upload error gracefully, e.g., display an error message
+            print('Error uploading image: $error');
+          }
+        }
+      } else {
+        // Send text message only
+        await _chatService.sendMessage(
+          widget.receiverUserId,
+          _messageController.text,
+          null, // No file to send
+        );
+
+        // Clear the message text after successful sending
+        setState(() {
+          _messageController.clear();
+        });
+      }
+
+      // Scroll to the end of the list regardless of message type
       scrollListToEnd();
     }
   }

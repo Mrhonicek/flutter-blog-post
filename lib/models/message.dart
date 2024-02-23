@@ -8,6 +8,9 @@ class Message {
   final String message;
   final Timestamp timestamp;
 
+  final String? imageUrl; // Optional field
+  final String? fileName; // Optional field
+
   Message({
     required this.messageId,
     required this.senderId,
@@ -15,6 +18,8 @@ class Message {
     required this.senderEmail,
     required this.message,
     required this.timestamp,
+    this.imageUrl,
+    this.fileName,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -25,6 +30,8 @@ class Message {
       senderEmail: json['sender_email'] ?? '',
       message: json['message'] ?? '',
       timestamp: json['timestamp'] ?? Timestamp.now(),
+      imageUrl: json['image_url'],
+      fileName: json['file_name'],
     );
   }
 
@@ -36,6 +43,8 @@ class Message {
       'sender_email': senderEmail,
       'message': message,
       'timestamp': timestamp,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (fileName != null) 'file_name': fileName,
     };
   }
 }
