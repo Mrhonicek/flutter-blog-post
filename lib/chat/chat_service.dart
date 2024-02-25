@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/models/groupchat.dart';
 import 'package:flutter_blog_post_project/models/message.dart';
+import 'package:intl/intl.dart';
 
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -134,9 +135,6 @@ class ChatService extends ChangeNotifier {
     await _fireStore.collection('Group_Chat_Rooms').doc(groupId).set(
           groupChat.toJson(),
         );
-
-    // Add messages, implement a similar logic to the `sendMessage` function,
-    // considering the group chat ID as the recipient instead of a single user ID.
   }
 
   // * SEND  GROUP MESSAGES
@@ -149,8 +147,12 @@ class ChatService extends ChangeNotifier {
     final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
     final Timestamp timestamp = Timestamp.now();
 
-    // Create a unique message ID using a combination of group ID and timestamp
-    final String messageId = "${groupId}_${timestamp.toString()}";
+    // Format the timestamp for the message ID
+    final DateFormat dateFormat = DateFormat('yyyy-MM-dd_HH:mm:ss');
+    final String formattedTimestamp = dateFormat.format(timestamp.toDate());
+
+    final String messageId =
+        "${groupId}_${formattedTimestamp}_${generateRandomImageName(10)}";
 
     // Create a new message
     Message newMessage = Message(

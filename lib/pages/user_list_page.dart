@@ -5,6 +5,7 @@ import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/models/groupchat.dart';
 import 'package:flutter_blog_post_project/pages/chat_page.dart';
 import 'package:flutter_blog_post_project/pages/create_groupchat_page.dart';
+import 'package:flutter_blog_post_project/pages/group_chat_page.dart';
 
 class UserListPage extends StatefulWidget {
   final User currentUser;
@@ -27,7 +28,6 @@ class _UserListPageState extends State<UserListPage> {
         title: const Text('Message Users'),
         elevation: 4,
         actions: [
-          // This is the dropdown button with shadow
           PopupMenuButton<String>(
             onSelected: (value) {
               // Handle selection
@@ -62,7 +62,7 @@ class _UserListPageState extends State<UserListPage> {
             child: _buildUserList(),
           ),
           const Divider(
-            thickness: 1, // Adjust divider thickness as needed
+            thickness: 1,
           ),
           Expanded(
             child: _buildGroupChatList(),
@@ -92,17 +92,14 @@ class _UserListPageState extends State<UserListPage> {
           ],
         ),
         child: ListTile(
-          tileColor: Colors
-              .transparent, // Set to transparent to avoid overlapping with container color
+          tileColor: Colors.transparent,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: CircleAvatar(
-            radius:
-                30, // Change this radius for the width of the circular border
+            radius: 30,
             backgroundColor: Theme.of(context).colorScheme.tertiary,
             child: CircleAvatar(
-              radius:
-                  25, // This radius is the radius of the picture in the circle avatar itself.
+              radius: 25,
               backgroundImage:
                   data["user_image"].isNotEmpty && data["user_image"] != ""
                       ? NetworkImage(data["user_image"])
@@ -168,34 +165,58 @@ class _UserListPageState extends State<UserListPage> {
               ],
             ),
             child: ListTile(
-              tileColor: Colors
-                  .transparent, // Set to transparent to avoid overlapping with container color
+              tileColor: Colors.transparent,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
-                radius:
-                    30, // Change this radius for the width of the circular border
+                radius: 30,
                 backgroundColor: Theme.of(context).colorScheme.tertiary,
                 child: const CircleAvatar(
-                  radius:
-                      25, // This radius is the radius of the picture in the circle avatar itself.
+                  radius: 25,
                   // TODO: Set group chat avatar if available
                   // backgroundImage: NetworkImage("placeholder-group-chat-image.jpg"),
                 ),
               ),
-              title: Text(groupChat.roomTitle,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
-                  )),
-              subtitle: Text(
-                  "Created by ${groupChat.groupAdminId} on ${groupChat.createdAt.toDate()}"),
+              title: Text(
+                groupChat.roomTitle,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              trailing: Icon(
+                Icons.people_alt_outlined,
+                color: Theme.of(context).colorScheme.secondary,
+                size: 30,
+              ),
+              subtitle: StreamBuilder<String?>(
+                stream: getAdminNameStream(groupChat.groupAdminId),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    String? adminName = snapshot.data;
+                    return Text(
+                        "Created by $adminName on ${formatTimestamp(groupChat.createdAt)}");
+                  } else if (snapshot.hasError) {
+                    return const Text("Error fetching admin name");
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
               onTap: () {
-                // TODO: Navigate to group chat screen, passing relevant data
+                // Pass the groupChat object to the group chat screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupChatPage(
+                      groupChat: groupChat, // Pass the entire GroupChat object
+                    ),
+                  ),
+                );
               },
             ),
           )
-        : const SizedBox.shrink(); // Display nothing for non-members
+        : const SizedBox.shrink();
   }
 
   Widget _buildUserList() {
@@ -243,28 +264,24 @@ class _UserListPageState extends State<UserListPage> {
     );
   }
 
-/*
-  Future<String> fetchAdminUsername(String adminId) async {
-    String adminName = ""; // Default value in case of errors
-
+  Stream<String?> getAdminNameStream(String adminId) {
     try {
-      DocumentSnapshot adminDoc = await FirebaseFirestore.instance
-          .collection("Users")
+      return FirebaseFirestore.instance
+          .collection('Users')
           .doc(adminId)
-          .get();
-      if (adminDoc.exists) {
-        Users adminUser =
-            Users.fromJson(adminDoc.data()! as Map<String, dynamic>);
-        adminName = adminUser.username;
-      } else {
-        print("Admin user document not found");
-      }
+          .snapshots()
+          .map((snapshot) {
+        if (snapshot.exists) {
+          Map<String, dynamic> userData = snapshot.data()!;
+          return userData['username']
+              as String?; // Assuming 'name' field stores the admin name
+        } else {
+          return null; // Admin with the provided ID not found
+        }
+      });
     } catch (error) {
-      print("Error fetching admin username: $error");
+      print("Error getting admin data: $error");
+      return Stream.value(null);
     }
-
-    return adminName;
   }
-
-  */
 }

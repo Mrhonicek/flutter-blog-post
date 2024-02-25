@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blog_post_project/chat/chat_functions.dart';
 import 'package:flutter_blog_post_project/chat/chat_service.dart';
 import 'package:flutter_blog_post_project/components/chat_bubble.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
@@ -43,7 +44,7 @@ class _ChatPageState extends State<ChatPage> {
     _listScrollController = ScrollController();
     _textFieldFocusNode.addListener(() {
       if (_textFieldFocusNode.hasFocus) {
-        jumpListToEnd();
+        jumpListToEnd(_listScrollController);
       }
     });
     super.initState();
@@ -68,7 +69,7 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           IconButton(
             onPressed: () {
-              showAlert("Help", "Tap on your own message to delete.");
+              showAlert(context, "Help", "Tap on your own message to delete.");
             },
             icon: const Icon(
               Icons.question_mark,
@@ -133,7 +134,7 @@ class _ChatPageState extends State<ChatPage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     !_isInitialScrollDone) {
-                  jumpListToEnd();
+                  jumpListToEnd(_listScrollController);
                   _isInitialScrollDone =
                       true; // Set flag to prevent further calls
                 }
@@ -143,20 +144,6 @@ class _ChatPageState extends State<ChatPage> {
           },
         );
       },
-    );
-  }
-
-  void scrollListToEnd() {
-    _listScrollController.animateTo(
-      _listScrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 200), // Adjust as needed
-      curve: Curves.easeOut,
-    );
-  }
-
-  void jumpListToEnd() {
-    _listScrollController.jumpTo(
-      _listScrollController.position.maxScrollExtent,
     );
   }
 
@@ -345,7 +332,10 @@ class _ChatPageState extends State<ChatPage> {
               _selectedFileWidget,
               IconButton(
                 onPressed: _pickFile,
-                icon: const Icon(Icons.attach_file_sharp),
+                icon: const Icon(
+                  Icons.image_outlined,
+                  size: 30,
+                ),
               ),
             ],
           ),
@@ -459,7 +449,7 @@ class _ChatPageState extends State<ChatPage> {
       }
 
       // Scroll to the end of the list regardless of message type
-      scrollListToEnd();
+      scrollListToEnd(_listScrollController);
     }
   }
 
@@ -522,40 +512,6 @@ class _ChatPageState extends State<ChatPage> {
       builder: (BuildContext context) {
         return alert;
       },
-    );
-  }
-
-  void showAlert(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(
-          title,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.tertiary,
-          ),
-        ),
-        content: Text(
-          message,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text(
-              "OK",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
