@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blog_post_project/components/functions.dart';
+import 'package:flutter_blog_post_project/models/groupchat.dart';
 import 'package:flutter_blog_post_project/models/message.dart';
 
 class ChatService extends ChangeNotifier {
@@ -11,17 +13,22 @@ class ChatService extends ChangeNotifier {
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 
   Future<String> uploadFile(File file) async {
-    // Create a reference to the file in Cloud Storage
-    final storageRef = FirebaseStorage.instance.ref().child(
-        'images/${DateTime.now().millisecondsSinceEpoch}/${file.path.split('/').last}');
+    final filename =
+        '${generateRandomImageName(5)}-${file.path.split('/').last}';
 
-    // Upload the file
-    final uploadTask = storageRef.putFile(file);
-    final snapshot = await uploadTask!.whenComplete(() => {});
+    final path = 'images/$filename';
+    final reference = FirebaseStorage.instance.ref().child(path);
+    final uploadTask = reference.putFile(file);
 
-    // Get the download URL
-    final downloadUrl = await snapshot.ref.getDownloadURL();
-    return downloadUrl;
+    try {
+      final snapshot = await uploadTask.whenComplete(() => {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (error) {
+      // Handle any errors that occur during the upload process
+      print('Error uploading file: $error');
+      rethrow; // Rethrow the error to allow for further handling
+    }
   }
 
   // * Send Messages
@@ -103,6 +110,93 @@ class ChatService extends ChangeNotifier {
           "timestamp",
           descending: false,
         )
+        .snapshots();
+  }
+
+  // TODO: GROUP CHAT FUNCTION STARTS HERE=========================================
+
+  Future<void> createGroupChat(String roomTitle, List<String> memberIds) async {
+    final String currentUserId = _firebaseAuth.currentUser!.uid;
+    // Generate a unique group chat ID
+    final String groupId =
+        FirebaseFirestore.instance.collection('Group_Chat_Rooms').doc().id;
+
+    // Create a GroupChat object
+    final groupChat = GroupChat(
+      groupId: groupId,
+      groupAdminId: currentUserId,
+      roomTitle: roomTitle,
+      memberIds: memberIds,
+      createdAt: Timestamp.now(),
+    );
+
+    // Add the group chat to Firestore
+    await _fireStore.collection('Group_Chat_Rooms').doc(groupId).set(
+          groupChat.toJson(),
+        );
+
+    // Add messages, implement a similar logic to the `sendMessage` function,
+    // considering the group chat ID as the recipient instead of a single user ID.
+  }
+
+  // * SEND  GROUP MESSAGES
+  Future<void> sendGroupMessage(
+      String groupId, String message, File? file) async {
+    final downloadUrl = file != null ? await uploadFile(file) : null;
+
+    // Get current user info
+    final String currentUserId = _firebaseAuth.currentUser!.uid;
+    final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
+    final Timestamp timestamp = Timestamp.now();
+
+    // Create a unique message ID using a combination of group ID and timestamp
+    final String messageId = "${groupId}_${timestamp.toString()}";
+
+    // Create a new message
+    Message newMessage = Message(
+      messageId: messageId,
+      senderId: currentUserId,
+      senderEmail: currentUserEmail,
+      receiverId: groupId, // Replace with the group ID
+      message: message,
+      timestamp: timestamp,
+      fileName: file?.path.split('/').last, // Optional: store filename
+      imageUrl: downloadUrl,
+    );
+
+    // Add message to the "Messages" collection within the group chat document
+    await _fireStore
+        .collection("Group_Chat_Rooms")
+        .doc(groupId)
+        .collection("Messages")
+        .doc(messageId) // Use the generated message ID
+        .set(newMessage.toJson());
+  }
+
+  //! DELETE GROUP MESSAGE
+  Future<void> deleteGroupMessage(String groupId, String messageId) async {
+    try {
+      // Access the "Messages" collection within the group chat document
+      await _fireStore
+          .collection("Group_Chat_Rooms")
+          .doc(groupId)
+          .collection("Messages")
+          .doc(messageId)
+          .delete();
+    } catch (e) {
+      // Handle any errors that occurred during the deletion process
+      print("Error deleting message: $e");
+    }
+  }
+
+  // ? RECEIVE GROUP MESSAGES
+  Stream<QuerySnapshot> receiveGroupMessages(String groupId) {
+    return _fireStore
+        .collection("Group_Chat_Rooms")
+        .doc(groupId)
+        .collection("Messages")
+        .orderBy("timestamp",
+            descending: false) // Order by timestamp, ascending
         .snapshots();
   }
 }

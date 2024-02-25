@@ -5,7 +5,7 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
   final IconData icon;
-
+  final ValueChanged<String>? onChanged; // Callback for onChanged
   FocusNode? focusNode;
 
   //colors
@@ -30,6 +30,7 @@ class MyTextField extends StatelessWidget {
     this.iconColor,
     this.cursorColor,
     this.borderRadiusPixel,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -38,6 +39,7 @@ class MyTextField extends StatelessWidget {
       focusNode: focusNode,
       controller: controller,
       obscureText: obscureText,
+      onChanged: onChanged,
       decoration: InputDecoration(
         contentPadding:
             const EdgeInsets.symmetric(vertical: 15, horizontal: 20),

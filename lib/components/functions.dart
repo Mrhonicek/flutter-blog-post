@@ -84,14 +84,6 @@ String _getFormattedTime(DateTime dateTime) {
   return formattedTime;
 }
 
-String generateRandomImageName(int length) {
-  var r = Random();
-  const _chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  return List.generate(length, (index) => _chars[r.nextInt(_chars.length)])
-      .join();
-}
-
 // Function to format timestamp as "MM/dd/yyyy at hh:mm a"
 String formatTimestampWithTimerDisplayDelay(
     DateTime timestamp, int delayInSeconds) {
@@ -141,4 +133,12 @@ String formatCommentTimestamp(Timestamp timestamp) {
     int years = (difference.inDays / 365).floor();
     return '$years years ago';
   }
+}
+
+String generateRandomImageName(int length) {
+  var r = Random();
+  const _chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return List.generate(length, (index) => _chars[r.nextInt(_chars.length)])
+      .join();
 }

@@ -439,12 +439,9 @@ class _ChatPageState extends State<ChatPage> {
               _messageController.text,
               file,
             );
-
             // Clear the selected file and message text after successful upload
-            setState(() {
-              _selectedFile = null;
-              _messageController.clear();
-            });
+            _selectedFile = null;
+            _messageController.clear();
           } catch (error) {
             // Handle upload error gracefully, e.g., display an error message
             print('Error uploading image: $error');
@@ -457,11 +454,8 @@ class _ChatPageState extends State<ChatPage> {
           _messageController.text,
           null, // No file to send
         );
-
         // Clear the message text after successful sending
-        setState(() {
-          _messageController.clear();
-        });
+        _messageController.clear();
       }
 
       // Scroll to the end of the list regardless of message type
