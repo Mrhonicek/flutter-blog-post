@@ -6,6 +6,7 @@ class GroupChat {
   final String roomTitle;
   final List<String> memberIds;
   final Timestamp createdAt;
+  final String groupImage;
 
   GroupChat({
     required this.groupId,
@@ -13,6 +14,7 @@ class GroupChat {
     required this.roomTitle,
     required this.memberIds,
     required this.createdAt,
+    required this.groupImage,
   });
 
   factory GroupChat.fromJson(Map<String, dynamic> json) => GroupChat(
@@ -21,6 +23,7 @@ class GroupChat {
         roomTitle: json['room_title'] as String,
         memberIds: List<String>.from(json['member_ids']),
         createdAt: json['created_at'] as Timestamp,
+        groupImage: json['group_image'] as String,
       );
 
   Map<String, dynamic> toJson() => {
@@ -29,5 +32,6 @@ class GroupChat {
         'room_title': roomTitle,
         'member_ids': memberIds,
         'created_at': createdAt,
+        'group_image': groupImage,
       };
 }

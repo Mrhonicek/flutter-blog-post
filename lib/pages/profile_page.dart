@@ -222,7 +222,10 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return UploadImageDialog(
-          userId: widget.currentUser.uid,
+          uploadId: widget.currentUser.uid,
+          collectionName: "Users",
+          documentName: "user_image",
+          uploadLabel: "Profile Picture",
         );
       },
     );

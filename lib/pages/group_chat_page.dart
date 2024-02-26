@@ -9,8 +9,10 @@ import 'package:flutter_blog_post_project/chat/chat_service.dart';
 import 'package:flutter_blog_post_project/components/chat_bubble.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/components/textfield.dart';
+import 'package:flutter_blog_post_project/components/upload_image_dialog.dart';
 import 'package:flutter_blog_post_project/models/groupchat.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class GroupChatPage extends StatefulWidget {
   final GroupChat groupChat;
@@ -27,6 +29,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   final ChatService _chatService = ChatService();
   final FocusNode _textFieldFocusNode = FocusNode();
   PlatformFile? _selectedFile;
+  final FlutterTts _flutterTts = FlutterTts();
 
   late ScrollController _listScrollController;
 
@@ -79,14 +82,76 @@ class _GroupChatPageState extends State<GroupChatPage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(roomTitle),
         actions: [
-          IconButton(
-            onPressed: () {
-              showAlert(context, "Help", "Tap on your own message to delete.");
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // Handle selection
+              switch (value) {
+                case 'change_group_pic':
+                  _showUpdateDialog(context);
+                  break;
+                /*
+                case 'add_members':
+                  // Handle add members logic
+                  break;
+                case 'view_members':
+                  break;
+                  */
+                case 'help':
+                  showAlert(context, "Help",
+                      "Tap your message to read the message for you. \n \nTap and hold your own message to delete.");
+                  break;
+                default:
+                // Handle unexpected value
+              }
             },
-            icon: const Icon(
-              Icons.question_mark,
-            ),
-          )
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'change_group_pic',
+                child: Row(
+                  children: [
+                    Icon(Icons
+                        .image), // You can change the icon to something more specific like "camera" or "edit"
+                    SizedBox(width: 10.0),
+                    Text('Change Group Pic'),
+                  ],
+                ),
+              ),
+              /*
+              const PopupMenuItem(
+                value: 'add_members',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_add),
+                    SizedBox(width: 10.0),
+                    Text('Add Members'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'view_members',
+                child: Row(
+                  children: [
+                    Icon(Icons.list),
+                    SizedBox(width: 10.0),
+                    Text('View Members'),
+                  ],
+                ),
+              ),
+              */
+              const PopupMenuItem(
+                value: 'help',
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline),
+                    SizedBox(width: 10.0),
+                    Text('Help'),
+                  ],
+                ),
+              ),
+            ],
+            color: Theme.of(context).colorScheme.primary,
+            shadowColor: Theme.of(context).colorScheme.tertiary,
+          ),
         ],
       ),
       body: SafeArea(
@@ -197,11 +262,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
       builder: (context, snapshot) {
         Users? user = snapshot.data;
 
-        // Display "You" if the sender is the current user
         String username = isCurrentUser ? "You" : user?.username ?? "";
-        String userImage = isCurrentUser
-            ? "" // Empty string for the current user
-            : user?.userImage ?? ""; // Use the fetched user's image for others
+        String userImage = isCurrentUser ? "" : user?.userImage ?? "";
 
         return Container(
           alignment: alignment,
@@ -225,7 +287,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   mainAxisAlignment: mainAxisAlignment,
                   children: [
                     Text(username),
-                    // Access other user properties if needed, e.g., user?.userImage
                     const SizedBox(height: 5),
                     Row(
                       crossAxisAlignment: crossAxisAlignment,
@@ -233,13 +294,11 @@ class _GroupChatPageState extends State<GroupChatPage> {
                       children: [
                         if (!isCurrentUser)
                           CircleAvatar(
-                            radius:
-                                22, // Change this radius for the width of the circular border
+                            radius: 22,
                             backgroundColor:
                                 Theme.of(context).colorScheme.tertiary,
                             child: CircleAvatar(
-                              radius:
-                                  20, // This radius is the radius of the picture in the circle avatar itself.
+                              radius: 20,
                               backgroundImage: userImage.isNotEmpty &&
                                       userImage != ""
                                   ? NetworkImage(userImage)
@@ -255,11 +314,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
                             maxWidth: 290,
                           ),
                           child: InkWell(
-                            onTap: () {
+                            onLongPress: () {
                               if (data["sender_id"] ==
                                   _firebaseAuth.currentUser!.uid) {
                                 showAlertDialogOnDelete(
                                     context, data["message_id"]);
+                              }
+                            },
+                            onTap: () {
+                              if (data["message"] != null &&
+                                  data["image_url"] == null) {
+                                _flutterTts.speak(data["message"]);
                               }
                             },
                             child: ChatBubble(
@@ -512,6 +577,20 @@ class _GroupChatPageState extends State<GroupChatPage> {
       context: context,
       builder: (BuildContext context) {
         return alert;
+      },
+    );
+  }
+
+  void _showUpdateDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return UploadImageDialog(
+          uploadId: widget.groupChat.groupId,
+          collectionName: "Group_Chat_Rooms",
+          documentName: "group_image",
+          uploadLabel: "Group Image",
+        );
       },
     );
   }

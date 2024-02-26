@@ -144,6 +144,7 @@ class _UserListPageState extends State<UserListPage> {
   Widget _buildGroupChatItem(DocumentSnapshot document) {
     GroupChat groupChat =
         GroupChat.fromJson(document.data()! as Map<String, dynamic>);
+    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
 
     // Check for membership
     bool isMember = groupChat.memberIds.contains(widget.currentUser.uid);
@@ -171,10 +172,14 @@ class _UserListPageState extends State<UserListPage> {
               leading: CircleAvatar(
                 radius: 30,
                 backgroundColor: Theme.of(context).colorScheme.tertiary,
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 25,
                   // TODO: Set group chat avatar if available
-                  // backgroundImage: NetworkImage("placeholder-group-chat-image.jpg"),
+                  backgroundImage: data["group_image"].isNotEmpty &&
+                          data["group_image"] != ""
+                      ? NetworkImage(data["group_image"])
+                      : const AssetImage('images/no_user_image.png')
+                          as ImageProvider<Object>?,
                 ),
               ),
               title: Text(

@@ -129,6 +129,7 @@ class ChatService extends ChangeNotifier {
       roomTitle: roomTitle,
       memberIds: memberIds,
       createdAt: Timestamp.now(),
+      groupImage: '',
     );
 
     // Add the group chat to Firestore

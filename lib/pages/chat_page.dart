@@ -10,6 +10,7 @@ import 'package:flutter_blog_post_project/components/chat_bubble.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/components/textfield.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverUserEmail;
@@ -33,8 +34,8 @@ class _ChatPageState extends State<ChatPage> {
   final ChatService _chatService = ChatService();
   final FocusNode _textFieldFocusNode = FocusNode();
   PlatformFile? _selectedFile;
-
   late ScrollController _listScrollController;
+  final FlutterTts _flutterTts = FlutterTts();
 
   bool _isInitialScrollDone = false;
 
@@ -69,10 +70,11 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           IconButton(
             onPressed: () {
-              showAlert(context, "Help", "Tap on your own message to delete.");
+              showAlert(context, "Help",
+                  "Tap your message to read the message for you. \n \nTap and hold your own message to delete.");
             },
             icon: const Icon(
-              Icons.question_mark,
+              Icons.help_outline,
             ),
           )
         ],
@@ -171,11 +173,8 @@ class _ChatPageState extends State<ChatPage> {
       builder: (context, snapshot) {
         Users? user = snapshot.data;
 
-        // Display "You" if the sender is the current user
         String username = isCurrentUser ? "You" : user?.username ?? "";
-        String userImage = isCurrentUser
-            ? "" // Empty string for the current user
-            : user?.userImage ?? ""; // Use the fetched user's image for others
+        String userImage = isCurrentUser ? "" : user?.userImage ?? "";
 
         return Container(
           alignment: alignment,
@@ -229,11 +228,17 @@ class _ChatPageState extends State<ChatPage> {
                             maxWidth: 290,
                           ),
                           child: InkWell(
-                            onTap: () {
+                            onLongPress: () {
                               if (data["sender_id"] ==
                                   _firebaseAuth.currentUser!.uid) {
                                 showAlertDialogOnDelete(
                                     context, data["message_id"]);
+                              }
+                            },
+                            onTap: () {
+                              if (data["message"] != null &&
+                                  data["image_url"] == null) {
+                                _flutterTts.speak(data["message"]);
                               }
                             },
                             child: ChatBubble(

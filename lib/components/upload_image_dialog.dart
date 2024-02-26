@@ -8,11 +8,17 @@ import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/models/photo.dart';
 
 class UploadImageDialog extends StatefulWidget {
-  final String userId;
+  final String uploadId;
+  final String collectionName;
+  final String documentName;
+  final String uploadLabel;
 
   const UploadImageDialog({
     super.key,
-    required this.userId,
+    required this.uploadId,
+    required this.collectionName,
+    required this.documentName,
+    required this.uploadLabel,
   });
 
   @override
@@ -54,11 +60,13 @@ class _UploadImageDialogState extends State<UploadImageDialog> {
     );
   }
 
-  Future updateUserImageAtDatabase(urlDownload, context, userId) async {
-    final docUser = FirebaseFirestore.instance.collection("Users").doc(userId);
+  Future updateImageAtDatabase(urlDownload, context, uploadId) async {
+    final document = FirebaseFirestore.instance
+        .collection(widget.collectionName)
+        .doc(uploadId);
 
-    await docUser.update({
-      'user_image': urlDownload,
+    await document.update({
+      widget.documentName: urlDownload,
     }).then((value) {
       showAlert(context, "Success", "Image Update Success!");
     });
@@ -152,7 +160,7 @@ class _UploadImageDialogState extends State<UploadImageDialog> {
 
       // Update the database with the download URL and add a new blog post
       // updateDatabase(urlDownload, context);
-      updateUserImageAtDatabase(urlDownload, context, widget.userId);
+      updateImageAtDatabase(urlDownload, context, widget.uploadId);
 
       setState(() {
         // Reset the state if needed
@@ -162,7 +170,6 @@ class _UploadImageDialogState extends State<UploadImageDialog> {
     } catch (error) {
       // Handle errors during file upload
       print('Error uploading file: $error');
-      // You might want to show an error message to the user
 
       showAlert(
         context,
@@ -238,7 +245,7 @@ class _UploadImageDialogState extends State<UploadImageDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Profile Picture',
+              widget.uploadLabel,
               style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.bold,
@@ -255,8 +262,8 @@ class _UploadImageDialogState extends State<UploadImageDialog> {
                 child: SizedBox(
                   height: 300,
                   child: pickedFile != null && pickedFile!.path != null
-                      ? imgExist() // Call your function to display Image.file
-                      : imgNotExist(), // Call your function to display Image.asset
+                      ? imgExist()
+                      : imgNotExist(),
                 ),
               ),
             ),
