@@ -7,9 +7,9 @@ import 'package:flutter_blog_post_project/components/individual_post.dart';
 import 'package:flutter_blog_post_project/components/sidebar.dart';
 import 'package:flutter_blog_post_project/models/blogs.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/user_list_page.dart';
 import 'package:flutter_blog_post_project/pages/profile_page.dart';
 import 'package:flutter_blog_post_project/pages/theme_list_page.dart';
-import 'package:flutter_blog_post_project/pages/user_list_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

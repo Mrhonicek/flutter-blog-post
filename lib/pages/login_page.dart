@@ -192,7 +192,7 @@ class _LoginState extends State<LoginPage> {
 
   Future checkLogin(username, password) async {
     if (isLoginInProgress) {
-      return; // Do not initiate another login if one is already in progress
+      return;
     }
 
     setState(() {
@@ -213,19 +213,14 @@ class _LoginState extends State<LoginPage> {
         email: username,
         password: password,
       );
-
       // Check whether the widget is still mounted before calling setState
-      setState(() {
-        isError = false;
-        errormessage = "";
-      });
+      isError = false;
+      errormessage = "";
     } on FirebaseAuthException catch (e) {
       print(e);
 
-      setState(() {
-        isError = true;
-        errormessage = e.message.toString();
-      });
+      isError = true;
+      errormessage = e.message.toString();
     } finally {
       setState(() {
         isLoginInProgress = false;

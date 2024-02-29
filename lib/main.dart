@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/authenticator.dart';
-import 'package:flutter_blog_post_project/theme/default_theme.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'package:flutter_blog_post_project/theme/custom_theme.dart';
+import 'themes/themes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Blog Post',
       debugShowCheckedModeBanner: false,
-      theme: defaultTheme,
+      theme: lightOrangeTheme,
       darkTheme: customTheme,
       home: const Authenticator(),
     );

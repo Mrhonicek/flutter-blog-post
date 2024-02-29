@@ -17,40 +17,37 @@ class CreateGroupChatPage extends StatefulWidget {
 class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
   final _nameController = TextEditingController();
   final _membersController = TextEditingController();
-  final List<Users> _selectedUsers = []; // Queue for selected users
-  List<Users> _fetchedUsers = []; // List to store fetched users
-  List<Users> _filteredUsers = []; // List to store filtered users
+  final List<Users> _selectedUsers = [];
+  List<Users> _fetchedUsers = [];
+  List<Users> _filteredUsers = [];
 
-  String currentUserId = ""; // the user operating the device
+  String currentUserId = "";
 
   @override
   void initState() {
     super.initState();
-    _fetchUsers(); // Fetch users on page initialization
+    _fetchUsers();
     currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    // Initialize _filteredUsers with fetched users
     _filteredUsers = _fetchedUsers;
   }
 
   Future<void> _fetchUsers() async {
     try {
-      final users = <Users>[]; // Empty list to store fetched users
+      final users = <Users>[];
 
       final collection = FirebaseFirestore.instance.collection('Users');
       final snapshot = await collection.get();
 
       for (final doc in snapshot.docs) {
         final user = Users.fromJson(doc.data());
-        // Filter out the current user during fetching
         if (user.userId != currentUserId) {
           users.add(user);
         }
       }
       setState(() {
-        _fetchedUsers = users; // Update state with filtered users
+        _fetchedUsers = users;
       });
     } catch (error) {
-      // Handle errors here (e.g., print error message)
       print(error.toString());
     }
   }
@@ -60,7 +57,13 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('Create Group Chat'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          'Create Group Chat',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -71,6 +74,11 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
               hintText: 'Group Name',
               icon: Icons.group,
               obscureText: false,
+              borderSideColor: Theme.of(context).colorScheme.secondary,
+              focusedBorderColor: Theme.of(context).colorScheme.tertiary,
+              hintTextColor: Theme.of(context).colorScheme.tertiary,
+              iconColor: Theme.of(context).colorScheme.tertiary,
+              cursorColor: Theme.of(context).colorScheme.tertiary,
             ),
             const SizedBox(height: 16.0),
             MyTextField(
@@ -78,14 +86,17 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
               hintText: 'Add members (search)',
               icon: Icons.person_add,
               obscureText: false,
+              borderSideColor: Theme.of(context).colorScheme.secondary,
+              focusedBorderColor: Theme.of(context).colorScheme.tertiary,
+              hintTextColor: Theme.of(context).colorScheme.tertiary,
+              iconColor: Theme.of(context).colorScheme.tertiary,
+              cursorColor: Theme.of(context).colorScheme.tertiary,
               onChanged: (String value) {
                 if (value.isEmpty) {
-                  // Clear search and display all users
                   setState(() {
                     _filteredUsers = _fetchedUsers;
                   });
                 } else {
-                  // Perform filtering based on search text
                   _filteredUsers = _fetchedUsers
                       .where((user) => user.username
                           .toLowerCase()
@@ -96,19 +107,12 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
               },
             ),
             const SizedBox(height: 24.0),
-            // Display selected users grid
             _buildSelectedUsersGrid(),
-
             const SizedBox(height: 24.0),
-
-            // Display filtered users
             _buildUserList(),
-
             const SizedBox(height: 24.0),
-            // Add a button to handle creating the group chat
             MyButton(
               onTap: () async {
-                // Get group name and member IDs
                 final String groupName = _nameController.text.trim();
                 final List<String> memberIds = [
                   currentUserId,
@@ -164,19 +168,13 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
         itemBuilder: (context, index) {
           final user = _filteredUsers[index];
           return ListTile(
-            // Add background color
-
             tileColor: Theme.of(context).colorScheme.primary,
-
-            // Add leading icon (adjust size and color based on your icon)
             leading: Icon(
               Icons.person,
               color: Theme.of(context).colorScheme.tertiary,
             ),
-
             title: Text(user.username),
             onTap: () {
-              // Update selected users and UI here
               setState(() {
                 if (_selectedUsers.contains(user)) {
                   _selectedUsers.remove(user);
@@ -211,8 +209,8 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
           return Container(
             padding: const EdgeInsets.all(8.0),
             constraints: const BoxConstraints(
-              maxHeight: 20.0, // Adjust minimum height for each item
-              maxWidth: 150.0, // Adjust maximum width for each item
+              maxHeight: 20.0,
+              maxWidth: 150.0,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
@@ -224,12 +222,12 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
                 Flexible(
                   child: Text(
                     user.username,
-                    style: const TextStyle(fontSize: 14.0), // Adjust font size
+                    style: const TextStyle(fontSize: 14.0),
                   ),
                 ),
                 const SizedBox(
                   width: 8.0,
-                ), // Add space between text and button
+                ),
                 IconButton(
                   icon: const Icon(Icons.close),
                   color: Theme.of(context).colorScheme.error,

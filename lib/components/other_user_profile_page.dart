@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/components/profile_text_box.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
-import 'package:flutter_blog_post_project/pages/chat_page.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/chat_page.dart';
 
 class OtherUserProfilePage extends StatelessWidget {
   final User currentUser;

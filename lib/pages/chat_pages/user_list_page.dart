@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
+import 'package:flutter_blog_post_project/components/textfield.dart';
 import 'package:flutter_blog_post_project/models/groupchat.dart';
-import 'package:flutter_blog_post_project/pages/chat_page.dart';
-import 'package:flutter_blog_post_project/pages/create_groupchat_page.dart';
-import 'package:flutter_blog_post_project/pages/group_chat_page.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/chat_page.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/create_groupchat_page.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/group_chat_page.dart';
 
 class UserListPage extends StatefulWidget {
   final User currentUser;
@@ -19,6 +20,20 @@ class UserListPage extends StatefulWidget {
 }
 
 class _UserListPageState extends State<UserListPage> {
+  late TextEditingController _userSearchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _userSearchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _userSearchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,23 +45,28 @@ class _UserListPageState extends State<UserListPage> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              // Handle selection
               if (value == 'create_group_chat') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const CreateGroupChatPage()),
+                    builder: (context) => const CreateGroupChatPage(),
+                  ),
                 );
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'create_group_chat',
                 child: Row(
                   children: [
-                    Icon(Icons.add_circle_outline),
-                    SizedBox(width: 10.0),
-                    Text('Create Group Chat'),
+                    Icon(Icons.add_circle_outline,
+                        color: Theme.of(context).colorScheme.secondary),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      'Create Group Chat',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary),
+                    ),
                   ],
                 ),
               ),
@@ -58,14 +78,51 @@ class _UserListPageState extends State<UserListPage> {
       ),
       body: Column(
         children: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 16),
+            child: MyTextField(
+              controller: _userSearchController,
+              hintText: 'Search',
+              icon: Icons.search,
+              obscureText: false,
+              borderSideColor: Theme.of(context).colorScheme.secondary,
+              focusedBorderColor: Theme.of(context).colorScheme.tertiary,
+              hintTextColor: Theme.of(context).colorScheme.tertiary,
+              iconColor: Theme.of(context).colorScheme.tertiary,
+              cursorColor: Theme.of(context).colorScheme.tertiary,
+              onChanged: (_) => setState(() {}),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+                onPressed: () {
+                  _userSearchController.clear();
+                  setState(() {});
+                },
+              ),
+            ),
+          ),
           Expanded(
             child: _buildUserList(),
           ),
-          const Divider(
-            thickness: 1,
-          ),
-          Expanded(
-            child: _buildGroupChatList(),
+          TextButton.icon(
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              builder: (context) => _buildGroupChatList(),
+            ),
+            icon: Icon(
+              Icons.arrow_drop_up,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            label: Text(
+              'Group Chats',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+            style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary),
           ),
         ],
       ),
@@ -174,7 +231,6 @@ class _UserListPageState extends State<UserListPage> {
                 backgroundColor: Theme.of(context).colorScheme.tertiary,
                 child: CircleAvatar(
                   radius: 25,
-                  // TODO: Set group chat avatar if available
                   backgroundImage: data["group_image"].isNotEmpty &&
                           data["group_image"] != ""
                       ? NetworkImage(data["group_image"])
@@ -209,12 +265,11 @@ class _UserListPageState extends State<UserListPage> {
                 },
               ),
               onTap: () {
-                // Pass the groupChat object to the group chat screen
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => GroupChatPage(
-                      groupChat: groupChat, // Pass the entire GroupChat object
+                      groupChat: groupChat,
                     ),
                   ),
                 );
@@ -236,10 +291,18 @@ class _UserListPageState extends State<UserListPage> {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView(
-          children: snapshot.data!.docs
-              .map<Widget>((doc) => _buildUserListItem(doc))
-              .toList(),
+
+        var filteredDocs = snapshot.data!.docs.where((doc) {
+          String username = doc["username"].toString().toLowerCase();
+          String searchQuery = _userSearchController.text.toLowerCase();
+          return username.contains(searchQuery);
+        }).toList();
+
+        return ListView.builder(
+          itemCount: filteredDocs.length,
+          itemBuilder: (context, index) {
+            return _buildUserListItem(filteredDocs[index]);
+          },
         );
       },
     );
@@ -253,17 +316,26 @@ class _UserListPageState extends State<UserListPage> {
         if (snapshot.hasError) {
           return const Text("Error loading group chat rooms");
         }
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
 
-        return ListView(
-          children: snapshot.data!.docs
-              .map<Widget>((doc) => _buildGroupChatItem(doc))
-              .toList(),
+        var filteredDocs = snapshot.data!.docs.where((doc) {
+          String roomTitle = doc["room_title"].toString().toLowerCase();
+          String searchQuery = _userSearchController.text.toLowerCase();
+          return roomTitle.contains(searchQuery);
+        }).toList();
+
+        return Container(
+          color: Theme.of(context).colorScheme.background,
+          child: ListView.builder(
+            itemCount: filteredDocs.length,
+            itemBuilder: (context, index) {
+              return _buildGroupChatItem(filteredDocs[index]);
+            },
+          ),
         );
       },
     );

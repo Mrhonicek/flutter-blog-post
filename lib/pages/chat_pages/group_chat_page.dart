@@ -9,33 +9,31 @@ import 'package:flutter_blog_post_project/chat/chat_service.dart';
 import 'package:flutter_blog_post_project/components/chat_bubble.dart';
 import 'package:flutter_blog_post_project/components/functions.dart';
 import 'package:flutter_blog_post_project/components/textfield.dart';
+import 'package:flutter_blog_post_project/components/upload_image_dialog.dart';
+import 'package:flutter_blog_post_project/models/groupchat.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/manage_group_members_page.dart';
+import 'package:flutter_blog_post_project/pages/chat_pages/group_members_page.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-class ChatPage extends StatefulWidget {
-  final String receiverUserEmail;
-  final String receiverUserId;
-  final String username;
+class GroupChatPage extends StatefulWidget {
+  final GroupChat groupChat;
 
-  const ChatPage({
-    super.key,
-    required this.receiverUserEmail,
-    required this.receiverUserId,
-    required this.username,
-  });
+  const GroupChatPage({super.key, required this.groupChat});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<GroupChatPage> createState() => _GroupChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _GroupChatPageState extends State<GroupChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final ChatService _chatService = ChatService();
   final FocusNode _textFieldFocusNode = FocusNode();
   PlatformFile? _selectedFile;
-  late ScrollController _listScrollController;
   final FlutterTts _flutterTts = FlutterTts();
+
+  late ScrollController _listScrollController;
 
   bool _isInitialScrollDone = false;
 
@@ -45,7 +43,7 @@ class _ChatPageState extends State<ChatPage> {
     _listScrollController = ScrollController();
     _textFieldFocusNode.addListener(() {
       if (_textFieldFocusNode.hasFocus) {
-        jumpListToEnd(_listScrollController);
+        // jumpListToEnd(_listScrollController);
       }
     });
     super.initState();
@@ -62,21 +60,126 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final roomTitle = widget.groupChat.roomTitle;
+    final memberIds = widget.groupChat.memberIds;
+    final usersFuture = getUsersFromIds(memberIds);
+
+    usersFuture.then((users) {
+      for (final user in users) {
+        print(user.username);
+      }
+    });
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(widget.receiverUserEmail),
+        title: Text(roomTitle),
         actions: [
-          IconButton(
-            onPressed: () {
-              showAlert(context, "Help",
-                  "Tap your message to read the message for you. \n \nTap and hold your own message to delete.");
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // Handle selection
+              switch (value) {
+                case 'change_group_pic':
+                  _showUpdateDialog(context);
+                  break;
+                case 'manage_members':
+                  if (_firebaseAuth.currentUser!.uid ==
+                      widget.groupChat.groupAdminId) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ManageGroupMembersPage(groupChat: widget.groupChat),
+                      ),
+                    );
+                  }
+                  break;
+                case 'view_members':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GroupMembersPage(
+                          groupChat: widget.groupChat,
+                          currentUser: _firebaseAuth.currentUser!),
+                    ),
+                  );
+                  break;
+                case 'help':
+                  showAlert(context, "Help",
+                      "Tap a message to read the message for you. \n \nLong press on your own message to delete.");
+                  break;
+                default:
+                // Handle unexpected value
+              }
             },
-            icon: const Icon(
-              Icons.help_outline,
-            ),
-          )
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'change_group_pic',
+                child: Row(
+                  children: [
+                    Icon(Icons.image,
+                        color: Theme.of(context).colorScheme.secondary),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      'Change Group Pic',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary),
+                    ),
+                  ],
+                ),
+              ),
+              if (_firebaseAuth.currentUser!.uid ==
+                  widget.groupChat.groupAdminId)
+                PopupMenuItem(
+                  value: 'manage_members',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_add,
+                          color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(width: 10.0),
+                      Text(
+                        'Manage Members',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary),
+                      ),
+                    ],
+                  ),
+                ),
+              PopupMenuItem(
+                value: 'view_members',
+                child: Row(
+                  children: [
+                    Icon(Icons.list,
+                        color: Theme.of(context).colorScheme.secondary),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      'View Members',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'help',
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline,
+                        color: Theme.of(context).colorScheme.secondary),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      'Help',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            color: Theme.of(context).colorScheme.primary,
+            shadowColor: Theme.of(context).colorScheme.tertiary,
+          ),
         ],
       ),
       body: SafeArea(
@@ -92,11 +195,25 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  Future<List<Users>> getUsersFromIds(List<String> memberIds) async {
+    final usersCollection = FirebaseFirestore.instance.collection('Users');
+    final userFutures = memberIds
+        .map((memberId) => usersCollection.doc(memberId).get())
+        .toList();
+
+    final userDocs = await Future.wait(userFutures);
+    final users = userDocs
+        .where((doc) => doc.exists)
+        .map((doc) => Users.fromJson(doc.data()!))
+        .toList();
+
+    return users;
+  }
+
   Widget _buildMessageList() {
     return StreamBuilder(
-      stream: _chatService.getMessages(
-        widget.receiverUserId,
-        _firebaseAuth.currentUser!.uid,
+      stream: _chatService.receiveGroupMessages(
+        widget.groupChat.groupId,
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -116,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
             child: Text(
               "Start a conversation!",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 letterSpacing: 2,
@@ -131,14 +248,13 @@ class _ChatPageState extends State<ChatPage> {
           itemBuilder: (context, index) {
             return FutureBuilder(
               future: Future.delayed(
-                Duration.zero, // microtask to ensure controller is attached
+                Duration.zero,
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     !_isInitialScrollDone) {
                   jumpListToEnd(_listScrollController);
-                  _isInitialScrollDone =
-                      true; // Set flag to prevent further calls
+                  _isInitialScrollDone = true;
                 }
                 return _buildMessageItem(messages[index]);
               },
@@ -198,7 +314,6 @@ class _ChatPageState extends State<ChatPage> {
                   mainAxisAlignment: mainAxisAlignment,
                   children: [
                     Text(username),
-                    // Access other user properties if needed, e.g., user?.userImage
                     const SizedBox(height: 5),
                     Row(
                       crossAxisAlignment: crossAxisAlignment,
@@ -206,13 +321,11 @@ class _ChatPageState extends State<ChatPage> {
                       children: [
                         if (!isCurrentUser)
                           CircleAvatar(
-                            radius:
-                                22, // Change this radius for the width of the circular border
+                            radius: 22,
                             backgroundColor:
                                 Theme.of(context).colorScheme.tertiary,
                             child: CircleAvatar(
-                              radius:
-                                  20, // This radius is the radius of the picture in the circle avatar itself.
+                              radius: 20,
                               backgroundImage: userImage.isNotEmpty &&
                                       userImage != ""
                                   ? NetworkImage(userImage)
@@ -271,34 +384,11 @@ class _ChatPageState extends State<ChatPage> {
               snapshot.data() as Map<String, dynamic>;
           return Users.fromJson(userData);
         } else {
-          return null; // User with the provided userID not found
+          return null;
         }
       });
     } catch (error) {
       print("Error getting user data: $error");
-      return Stream.value(null);
-    }
-  }
-
-  // ? Example code of fetching just the username
-  Stream<String?> getUserNameStream(String userId) {
-    try {
-      return FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userId)
-          .snapshots()
-          .map((snapshot) {
-        if (snapshot.exists) {
-          Map<String, dynamic> userData =
-              snapshot.data() as Map<String, dynamic>;
-          Users user = Users.fromJson(userData);
-          return user.username;
-        } else {
-          return null; // User with the provided userID not found
-        }
-      });
-    } catch (error) {
-      print("Error getting username: $error");
       return Stream.value(null);
     }
   }
@@ -312,8 +402,7 @@ class _ChatPageState extends State<ChatPage> {
             color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
             spreadRadius: 2,
             blurRadius: 5,
-            offset:
-                const Offset(0, -1), // Set a negative value for upward shift
+            offset: const Offset(0, -1),
           )
         ],
       ),
@@ -347,7 +436,7 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               IconButton(
-                onPressed: sendMessage,
+                onPressed: sendGroupMessage,
                 icon: const Icon(
                   Icons.send_outlined,
                   size: 40,
@@ -358,6 +447,58 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.any,
+    );
+
+    if (result != null) {
+      final file = result.files.single;
+      setState(() {
+        _selectedFile = file;
+      });
+      // Handle the selected file (upload, etc.)
+    }
+  }
+
+  void sendGroupMessage() async {
+    if (_messageController.text.isNotEmpty || _selectedFile != null) {
+      // Check if a file is selected
+      if (_selectedFile != null) {
+        final filePath = _selectedFile!.path;
+
+        if (filePath != null) {
+          print(filePath);
+          final file = File(filePath);
+
+          try {
+            await _chatService.sendGroupMessage(
+              widget.groupChat.groupId,
+              _messageController.text,
+              file,
+            );
+            _selectedFile = null;
+            _messageController.clear();
+          } catch (error) {
+            print('Error uploading image: $error');
+          }
+        }
+      } else {
+        // Send text message only
+        await _chatService.sendGroupMessage(
+          widget.groupChat.groupId,
+          _messageController.text,
+          null, // No file to send
+        );
+        // Clear the message text after successful sending
+        _messageController.clear();
+      }
+      // Scroll to the end of the list regardless of message type
+      scrollListToEnd(_listScrollController);
+    }
   }
 
   Widget get _selectedFileWidget {
@@ -403,65 +544,9 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
-      type: FileType.any,
-    );
-
-    if (result != null) {
-      final file = result.files.single;
-      setState(() {
-        _selectedFile = file;
-      });
-      // Handle the selected file (upload, etc.)
-    }
-  }
-
-  void sendMessage() async {
-    if (_messageController.text.isNotEmpty || _selectedFile != null) {
-      // Check if a file is selected
-      if (_selectedFile != null) {
-        final filePath = _selectedFile!.path;
-
-        if (filePath != null) {
-          print(filePath);
-          final file = File(filePath);
-
-          try {
-            await _chatService.sendMessage(
-              widget.receiverUserId,
-              _messageController.text,
-              file,
-            );
-            // Clear the selected file and message text after successful upload
-            _selectedFile = null;
-            _messageController.clear();
-          } catch (error) {
-            // Handle upload error gracefully, e.g., display an error message
-            print('Error uploading image: $error');
-          }
-        }
-      } else {
-        // Send text message only
-        await _chatService.sendMessage(
-          widget.receiverUserId,
-          _messageController.text,
-          null, // No file to send
-        );
-        // Clear the message text after successful sending
-        _messageController.clear();
-      }
-
-      // Scroll to the end of the list regardless of message type
-      scrollListToEnd(_listScrollController);
-    }
-  }
-
-  void deleteMessage(String messageId) async {
-    await _chatService.deleteMessage(
-      _firebaseAuth.currentUser!.uid,
-      widget.receiverUserId,
+  void deleteGroupMessage(String messageId) async {
+    await _chatService.deleteGroupMessage(
+      widget.groupChat.groupId,
       messageId,
     );
   }
@@ -488,7 +573,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       onPressed: () {
         Navigator.of(context).pop();
-        deleteMessage(messageId);
+        deleteGroupMessage(messageId);
       },
     );
 
@@ -516,6 +601,20 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (BuildContext context) {
         return alert;
+      },
+    );
+  }
+
+  void _showUpdateDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return UploadImageDialog(
+          uploadId: widget.groupChat.groupId,
+          collectionName: "Group_Chat_Rooms",
+          documentName: "group_image",
+          uploadLabel: "Group Image",
+        );
       },
     );
   }

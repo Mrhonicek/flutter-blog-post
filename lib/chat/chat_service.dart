@@ -26,13 +26,11 @@ class ChatService extends ChangeNotifier {
       final downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (error) {
-      // Handle any errors that occur during the upload process
       print('Error uploading file: $error');
-      rethrow; // Rethrow the error to allow for further handling
+      rethrow;
     }
   }
 
-  // * Send Messages
   Future<void> sendMessage(
     String receiverId,
     String message,
@@ -40,16 +38,13 @@ class ChatService extends ChangeNotifier {
   ) async {
     final downloadUrl = file != null ? await uploadFile(file) : null;
 
-    // get currentUser info
     final String currentUserId = _firebaseAuth.currentUser!.uid;
     final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
     final Timestamp timestamp = Timestamp.now();
 
-    // generate a unique messageId
     final messageId =
         FirebaseFirestore.instance.collection('Chat_Rooms').doc().id;
 
-    // create a new message
     Message newMessage = Message(
       messageId: messageId,
       senderId: currentUserId,
@@ -57,27 +52,24 @@ class ChatService extends ChangeNotifier {
       receiverId: receiverId,
       message: message,
       timestamp: timestamp,
-      fileName: file?.path.split('/').last, // Optional: store filename
+      fileName: file?.path.split('/').last,
       imageUrl: downloadUrl,
     );
 
-    // construct chat room id (unique)
     List<String> ids = [currentUserId, receiverId];
     ids.sort();
     String chatRoomId = ids.join("_");
 
-    // add new message to database with messageId as the document ID
     await _fireStore
         .collection("Chat_Rooms")
         .doc(chatRoomId)
         .collection("Messages")
-        .doc(messageId) // set the messageId as the document ID
+        .doc(messageId)
         .set(
           newMessage.toJson(),
         );
   }
 
-  // ! Delete Messages
   Future<void> deleteMessage(
       String userId, String otherUserId, String messageId) async {
     try {
@@ -118,11 +110,9 @@ class ChatService extends ChangeNotifier {
 
   Future<void> createGroupChat(String roomTitle, List<String> memberIds) async {
     final String currentUserId = _firebaseAuth.currentUser!.uid;
-    // Generate a unique group chat ID
     final String groupId =
         FirebaseFirestore.instance.collection('Group_Chat_Rooms').doc().id;
 
-    // Create a GroupChat object
     final groupChat = GroupChat(
       groupId: groupId,
       groupAdminId: currentUserId,
@@ -132,54 +122,60 @@ class ChatService extends ChangeNotifier {
       groupImage: '',
     );
 
-    // Add the group chat to Firestore
     await _fireStore.collection('Group_Chat_Rooms').doc(groupId).set(
           groupChat.toJson(),
         );
   }
 
-  // * SEND  GROUP MESSAGES
+  // ? UPDATE GROUP MEMBERS
+  Future<void> updateGroupMembers(
+      String groupId, List<String> newMemberIds) async {
+    try {
+      await _fireStore
+          .collection('Group_Chat_Rooms')
+          .doc(groupId)
+          .update({'member_ids': newMemberIds});
+    } catch (error) {
+      print(error);
+      rethrow; // Rethrow the error to be handled by the calling code
+    }
+  }
+
   Future<void> sendGroupMessage(
       String groupId, String message, File? file) async {
     final downloadUrl = file != null ? await uploadFile(file) : null;
 
-    // Get current user info
     final String currentUserId = _firebaseAuth.currentUser!.uid;
     final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
     final Timestamp timestamp = Timestamp.now();
 
-    // Format the timestamp for the message ID
     final DateFormat dateFormat = DateFormat('yyyy-MM-dd_HH:mm:ss');
     final String formattedTimestamp = dateFormat.format(timestamp.toDate());
 
     final String messageId =
         "${groupId}_${formattedTimestamp}_${generateRandomImageName(10)}";
 
-    // Create a new message
     Message newMessage = Message(
       messageId: messageId,
       senderId: currentUserId,
       senderEmail: currentUserEmail,
-      receiverId: groupId, // Replace with the group ID
+      receiverId: groupId,
       message: message,
       timestamp: timestamp,
-      fileName: file?.path.split('/').last, // Optional: store filename
+      fileName: file?.path.split('/').last,
       imageUrl: downloadUrl,
     );
 
-    // Add message to the "Messages" collection within the group chat document
     await _fireStore
         .collection("Group_Chat_Rooms")
         .doc(groupId)
         .collection("Messages")
-        .doc(messageId) // Use the generated message ID
+        .doc(messageId)
         .set(newMessage.toJson());
   }
 
-  //! DELETE GROUP MESSAGE
   Future<void> deleteGroupMessage(String groupId, String messageId) async {
     try {
-      // Access the "Messages" collection within the group chat document
       await _fireStore
           .collection("Group_Chat_Rooms")
           .doc(groupId)
@@ -187,7 +183,6 @@ class ChatService extends ChangeNotifier {
           .doc(messageId)
           .delete();
     } catch (e) {
-      // Handle any errors that occurred during the deletion process
       print("Error deleting message: $e");
     }
   }
