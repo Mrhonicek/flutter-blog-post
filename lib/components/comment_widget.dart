@@ -175,6 +175,7 @@ class CommentWidget extends StatelessWidget {
     );
 
     AlertDialog alert = AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.primary,
       title: Text(
         "Question",
         style: TextStyle(

@@ -246,7 +246,7 @@ class _UserListPageState extends State<UserListPage> {
                 ),
               ),
               trailing: Icon(
-                Icons.people_alt_outlined,
+                Icons.groups_outlined,
                 color: Theme.of(context).colorScheme.secondary,
                 size: 30,
               ),

@@ -122,8 +122,7 @@ class _HomePageState extends State<HomePage> {
                           .withOpacity(0.4),
                       spreadRadius: 1,
                       blurRadius: 10,
-                      offset:
-                          const Offset(0, -2), // changes the shadow position
+                      offset: const Offset(0, -2),
                     ),
                   ],
                 ),
@@ -206,7 +205,6 @@ class _HomePageState extends State<HomePage> {
           createdAt: blog.createdAt,
           likes: blog.likes,
           currentUser: currentUser,
-          // Other properties as needed
         );
       },
     );
