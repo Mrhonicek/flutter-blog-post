@@ -50,7 +50,7 @@ class _LoginState extends State<LoginPage> {
             ),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               const SizedBox(height: 100),
               Padding(
@@ -58,14 +58,31 @@ class _LoginState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'LOGIN',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.tertiary,
-                        letterSpacing: 2,
-                        fontSize: 38,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                            letterSpacing: 2,
+                            fontSize: 38,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 70,
+                          child: Center(
+                            child: Image(
+                              image:
+                                  const AssetImage('images/blog_post_logo.png'),
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Text('Error loading image');
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       'Blog Post App',
@@ -161,7 +178,7 @@ class _LoginState extends State<LoginPage> {
                                           .secondary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      decoration: TextDecoration.underline,
+                                      decoration: TextDecoration.none,
                                     ),
                                   ),
                                 ],
