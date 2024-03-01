@@ -15,6 +15,7 @@ class MyTextField extends StatelessWidget {
   Color? hintTextColor;
   Color? iconColor;
   Color? cursorColor;
+  Color? textColor;
 
   int? borderRadiusPixel;
 
@@ -30,6 +31,7 @@ class MyTextField extends StatelessWidget {
     this.hintTextColor,
     this.iconColor,
     this.cursorColor,
+    this.textColor,
     this.borderRadiusPixel,
     this.onChanged,
     this.suffixIcon,
@@ -79,7 +81,9 @@ class MyTextField extends StatelessWidget {
           ? cursorColor!
           : Theme.of(context).colorScheme.secondary,
       style: TextStyle(
-        color: Theme.of(context).colorScheme.secondary,
+        color: (textColor != null)
+            ? textColor!
+            : Theme.of(context).colorScheme.secondary,
       ),
     );
   }

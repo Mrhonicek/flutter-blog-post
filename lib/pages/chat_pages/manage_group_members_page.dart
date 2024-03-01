@@ -66,31 +66,49 @@ class _ManageGroupMembersPageState extends State<ManageGroupMembersPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 24.0),
-                  MyTextField(
-                    controller: _membersController,
-                    hintText: 'Add members (search)',
-                    icon: Icons.person_add,
-                    obscureText: false,
-                    borderSideColor: Theme.of(context).colorScheme.secondary,
-                    focusedBorderColor: Theme.of(context).colorScheme.tertiary,
-                    hintTextColor: Theme.of(context).colorScheme.tertiary,
-                    iconColor: Theme.of(context).colorScheme.tertiary,
-                    cursorColor: Theme.of(context).colorScheme.tertiary,
-                    onChanged: (String value) {
-                      if (value.isEmpty) {
-                        setState(() {
-                          _filteredUsers = _fetchedUsers;
-                        });
-                      } else {
-                        _filteredUsers = _fetchedUsers
-                            .where((user) => user.username
-                                .toLowerCase()
-                                .contains(value.toLowerCase()))
-                            .toList();
-                        setState(() {});
-                      }
-                    },
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(context).colorScheme.secondary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .tertiary
+                              .withOpacity(0.3),
+                          blurRadius: 5,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: MyTextField(
+                      controller: _membersController,
+                      hintText: 'Add members (search)',
+                      icon: Icons.person_add,
+                      obscureText: false,
+                      borderSideColor: Theme.of(context).colorScheme.secondary,
+                      focusedBorderColor:
+                          Theme.of(context).colorScheme.tertiary,
+                      hintTextColor: Theme.of(context).colorScheme.tertiary,
+                      iconColor: Theme.of(context).colorScheme.tertiary,
+                      cursorColor: Theme.of(context).colorScheme.primary,
+                      textColor: Theme.of(context).colorScheme.tertiary,
+                      onChanged: (String value) {
+                        if (value.isEmpty) {
+                          setState(() {
+                            _filteredUsers = _fetchedUsers;
+                          });
+                        } else {
+                          _filteredUsers = _fetchedUsers
+                              .where((user) => user.username
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase()))
+                              .toList();
+                          setState(() {});
+                        }
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24.0),
                   Row(
@@ -103,7 +121,7 @@ class _ManageGroupMembersPageState extends State<ManageGroupMembersPage> {
                           color: Theme.of(context).colorScheme.tertiary,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                     ],
                   ),
                   const SizedBox(height: 8.0),
@@ -121,7 +139,7 @@ class _ManageGroupMembersPageState extends State<ManageGroupMembersPage> {
                           color: Theme.of(context).colorScheme.tertiary,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                     ],
                   ),
                   const SizedBox(height: 8.0),

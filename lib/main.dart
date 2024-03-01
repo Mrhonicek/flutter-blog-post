@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/authenticator.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_blog_post_project/notifications/callLocalNotifications.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -10,6 +12,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  await LocalNotification.initialize(flutterLocalNotificationsPlugin);
 
   runApp(const MyApp());
 }

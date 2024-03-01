@@ -79,6 +79,19 @@ class _UserListPageState extends State<UserListPage> {
       body: Column(
         children: [
           Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Theme.of(context).colorScheme.secondary,
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
             margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 16),
             child: MyTextField(
               controller: _userSearchController,
@@ -106,23 +119,37 @@ class _UserListPageState extends State<UserListPage> {
           Expanded(
             child: _buildUserList(),
           ),
-          TextButton.icon(
-            onPressed: () => showModalBottomSheet(
-              context: context,
-              builder: (context) => _buildGroupChatList(),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Theme.of(context).colorScheme.primary,
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            icon: Icon(
-              Icons.arrow_drop_up,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            label: Text(
-              'Group Chats',
-              style: TextStyle(
+            child: TextButton.icon(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                builder: (context) => _buildGroupChatList(),
+              ),
+              icon: Icon(
+                Icons.arrow_drop_up,
                 color: Theme.of(context).colorScheme.secondary,
               ),
+              label: Text(
+                'Group Chats',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary),
             ),
-            style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary),
           ),
         ],
       ),

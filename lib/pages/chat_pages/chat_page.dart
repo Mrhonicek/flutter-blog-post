@@ -12,6 +12,9 @@ import 'package:flutter_blog_post_project/components/textfield.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'package:flutter_blog_post_project/notifications/callLocalNotifications.dart';
+import 'package:flutter_blog_post_project/notifications/notify.dart';
+
 class ChatPage extends StatefulWidget {
   final String receiverUserEmail;
   final String receiverUserId;
@@ -36,6 +39,8 @@ class _ChatPageState extends State<ChatPage> {
   PlatformFile? _selectedFile;
   late ScrollController _listScrollController;
   final FlutterTts _flutterTts = FlutterTts();
+
+  DateTime? _latestMessageTimestamp;
 
   bool _isInitialScrollDone = false;
 
@@ -110,6 +115,10 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         final messages = snapshot.data!.docs;
+        if (messages.isNotEmpty) {
+          // Update the latest message timestamp
+          _latestMessageTimestamp = messages.last["timestamp"].toDate();
+        }
 
         if (messages.isEmpty) {
           return Center(
@@ -153,6 +162,7 @@ class _ChatPageState extends State<ChatPage> {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
     bool isCurrentUser = data["sender_id"] == _firebaseAuth.currentUser!.uid;
     DateTime messageTimestamp = data["timestamp"].toDate();
+    bool isLatestMessage = messageTimestamp == _latestMessageTimestamp;
 
     var alignment = (data["sender_id"] == _firebaseAuth.currentUser!.uid)
         ? Alignment.centerRight
@@ -175,6 +185,21 @@ class _ChatPageState extends State<ChatPage> {
 
         String username = isCurrentUser ? "You" : user?.username ?? "";
         String userImage = isCurrentUser ? "" : user?.userImage ?? "";
+
+        if (!isCurrentUser && isLatestMessage) {
+          // callLocalNotification(username, data["message"], data["image_url"]);
+
+          String message = data["message"] ?? "";
+          String imageUrl = data["image_url"] ?? "";
+          String notificationBody =
+              imageUrl.isNotEmpty ? "Sent a photo" : message;
+
+          LocalNotification.showBigTextNotification(
+            title: username,
+            body: notificationBody,
+            fln: flutterLocalNotificationsPlugin,
+          );
+        }
 
         return Container(
           alignment: alignment,
@@ -259,6 +284,20 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  void callLocalNotification(
+      String channelTitle, String channelDescription, String? imageUrl) {
+    // Check if the message is an image
+    if (imageUrl != null) {
+      channelDescription = "Sent a photo";
+    }
+
+    LocalNotification.showBigTextNotification(
+      title: channelTitle,
+      body: channelDescription,
+      fln: flutterLocalNotificationsPlugin,
+    );
+  }
+
   Stream<Users?> getUserStream(String userId) {
     try {
       return FirebaseFirestore.instance
@@ -312,8 +351,7 @@ class _ChatPageState extends State<ChatPage> {
             color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
             spreadRadius: 2,
             blurRadius: 5,
-            offset:
-                const Offset(0, -1), // Set a negative value for upward shift
+            offset: const Offset(0, -1),
           )
         ],
       ),
@@ -375,7 +413,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              reverse: true, // Start text at the end
+              reverse: true,
               child: Row(
                 children: [
                   const SizedBox(width: 5),
@@ -434,11 +472,9 @@ class _ChatPageState extends State<ChatPage> {
               _messageController.text,
               file,
             );
-            // Clear the selected file and message text after successful upload
             _selectedFile = null;
             _messageController.clear();
           } catch (error) {
-            // Handle upload error gracefully, e.g., display an error message
             print('Error uploading image: $error');
           }
         }

@@ -16,6 +16,9 @@ import 'package:flutter_blog_post_project/pages/chat_pages/manage_group_members_
 import 'package:flutter_blog_post_project/pages/chat_pages/group_members_page.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'package:flutter_blog_post_project/notifications/callLocalNotifications.dart';
+import 'package:flutter_blog_post_project/notifications/notify.dart';
+
 class GroupChatPage extends StatefulWidget {
   final GroupChat groupChat;
 
@@ -34,6 +37,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
   final FlutterTts _flutterTts = FlutterTts();
 
   late ScrollController _listScrollController;
+
+  DateTime? _latestMessageTimestamp;
 
   bool _isInitialScrollDone = false;
 
@@ -227,6 +232,10 @@ class _GroupChatPageState extends State<GroupChatPage> {
         }
 
         final messages = snapshot.data!.docs;
+        if (messages.isNotEmpty) {
+          // Update the latest message timestamp
+          _latestMessageTimestamp = messages.last["timestamp"].toDate();
+        }
 
         if (messages.isEmpty) {
           return Center(
@@ -269,6 +278,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
     bool isCurrentUser = data["sender_id"] == _firebaseAuth.currentUser!.uid;
     DateTime messageTimestamp = data["timestamp"].toDate();
+    bool isLatestMessage = messageTimestamp == _latestMessageTimestamp;
 
     var alignment = (data["sender_id"] == _firebaseAuth.currentUser!.uid)
         ? Alignment.centerRight
@@ -291,6 +301,21 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
         String username = isCurrentUser ? "You" : user?.username ?? "";
         String userImage = isCurrentUser ? "" : user?.userImage ?? "";
+
+        if (!isCurrentUser && isLatestMessage) {
+          // callLocalNotification(username, data["message"], data["image_url"]);
+
+          String message = data["message"] ?? "";
+          String imageUrl = data["image_url"] ?? "";
+          String notificationBody =
+              imageUrl.isNotEmpty ? "Sent a photo" : message;
+
+          LocalNotification.showBigTextNotification(
+            title: username,
+            body: notificationBody,
+            fln: flutterLocalNotificationsPlugin,
+          );
+        }
 
         return Container(
           alignment: alignment,
@@ -369,6 +394,20 @@ class _GroupChatPageState extends State<GroupChatPage> {
           ),
         );
       },
+    );
+  }
+
+  void callLocalNotification(
+      String channelTitle, String channelDescription, String? imageUrl) {
+    // Check if the message is an image
+    if (imageUrl != null) {
+      channelDescription = "Sent a photo";
+    }
+
+    LocalNotification.showBigTextNotification(
+      title: channelTitle,
+      body: channelDescription,
+      fln: flutterLocalNotificationsPlugin,
     );
   }
 
