@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   final currentUser = FirebaseAuth.instance.currentUser!;
   bool _isLoading = false;
   String _errorMessage = '';
-  List<Blogs> _blogs = []; // Initialize with empty list
+  List<Blogs> _blogs = [];
 
   @override
   void initState() {

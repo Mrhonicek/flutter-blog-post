@@ -41,25 +41,29 @@ class _GroupChatPageState extends State<GroupChatPage> {
   DateTime? _latestMessageTimestamp;
 
   bool _isInitialScrollDone = false;
-
+  bool _isMounted = false;
   @override
   void initState() {
     // TODO: implement initState
+    _isMounted = true;
     _listScrollController = ScrollController();
     _textFieldFocusNode.addListener(() {
       if (_textFieldFocusNode.hasFocus) {
         // jumpListToEnd(_listScrollController);
       }
     });
+
     super.initState();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
+
     _listScrollController.dispose();
     _messageController.dispose();
     _isInitialScrollDone = false;
+
     super.dispose();
   }
 
@@ -122,6 +126,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                     "We understand this might be a big decision. Deleting a group chat means losing all its messages and history. Are you ready to proceed?",
                     (id) => deleteGroupChat(groupId),
                   );
+
                   break;
                 default:
                 // Handle unexpected value
@@ -530,7 +535,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
       setState(() {
         _selectedFile = file;
       });
-      // Handle the selected file (upload, etc.)
     }
   }
 
@@ -563,10 +567,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
           _messageController.text,
           null, // No file to send
         );
-        // Clear the message text after successful sending
         _messageController.clear();
       }
-      // Scroll to the end of the list regardless of message type
       scrollListToEnd(_listScrollController);
     }
   }
@@ -586,7 +588,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              reverse: true, // Start text at the end
+              reverse: true,
               child: Row(
                 children: [
                   const SizedBox(width: 5),
@@ -623,14 +625,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   void deleteGroupChat(String groupId) async {
     await _chatService.deleteGroupChat(groupId);
+    if (_isMounted) {
+      Navigator.pop(context);
+      _isMounted = false;
+    }
   }
 
   void showAlertDialogOnDelete(
     BuildContext context,
     String toDeleteId,
     String message,
-    Function(String id)
-        deleteFunction, // Pass the specific delete function as an argument
+    Function(String id) deleteFunction,
   ) {
     Widget cancelButton = TextButton(
       child: Text(

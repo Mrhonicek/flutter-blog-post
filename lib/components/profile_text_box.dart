@@ -15,7 +15,7 @@ class ProfileTextBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4, // Add elevation to the card
+      elevation: 4,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -49,7 +49,7 @@ class ProfileTextBox extends StatelessWidget {
             ),
             const SizedBox(
               height: 8,
-            ), // Add spacing between sectionName and text
+            ),
             Text(
               text,
               style: TextStyle(

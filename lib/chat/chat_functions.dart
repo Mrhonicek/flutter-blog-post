@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 void scrollListToEnd(ScrollController _listScrollController) {
   _listScrollController.animateTo(
     _listScrollController.position.maxScrollExtent,
-    duration: const Duration(milliseconds: 200), // Adjust as needed
+    duration: const Duration(milliseconds: 200),
     curve: Curves.easeOut,
   );
 }
@@ -68,7 +68,7 @@ Widget _buildMessageInput(
           color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
           spreadRadius: 2,
           blurRadius: 5,
-          offset: const Offset(0, -1), // Set a negative value for upward shift
+          offset: const Offset(0, -1),
         )
       ],
     ),

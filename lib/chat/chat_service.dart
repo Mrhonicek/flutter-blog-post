@@ -84,7 +84,6 @@ class ChatService extends ChangeNotifier {
           .doc(messageId)
           .delete();
     } catch (e) {
-      // Handle any errors that occurred during the deletion process
       print("Error deleting message: $e");
     }
   }
@@ -137,7 +136,7 @@ class ChatService extends ChangeNotifier {
           .update({'member_ids': newMemberIds});
     } catch (error) {
       print(error);
-      rethrow; // Rethrow the error to be handled by the calling code
+      rethrow;
     }
   }
 
@@ -201,8 +200,7 @@ class ChatService extends ChangeNotifier {
         .collection("Group_Chat_Rooms")
         .doc(groupId)
         .collection("Messages")
-        .orderBy("timestamp",
-            descending: false) // Order by timestamp, ascending
+        .orderBy("timestamp", descending: false)
         .snapshots();
   }
 }

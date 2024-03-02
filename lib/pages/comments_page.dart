@@ -129,7 +129,7 @@ class _CommentsPageState extends State<CommentsPage> {
             color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
             spreadRadius: 1,
             blurRadius: 10,
-            offset: const Offset(0, -2), // changes the shadow position
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -150,7 +150,6 @@ class _CommentsPageState extends State<CommentsPage> {
               color: Theme.of(context).colorScheme.secondary,
             ),
             onPressed: () {
-              // Implement logic to add comment to Firestore
               addComment();
             },
           ),

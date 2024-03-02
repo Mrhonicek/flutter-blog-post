@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blog_post_project/components/sidebar_list_tiles.dart';
 import 'package:flutter_blog_post_project/models/users.dart';
+import 'package:flutter_blog_post_project/pages/weather_page.dart';
 
 class MySidebar extends StatefulWidget {
   final User currentUser;
@@ -46,12 +47,10 @@ class _MySidebarState extends State<MySidebar> {
                   children: [
                     const SizedBox(height: 50),
                     CircleAvatar(
-                      radius:
-                          50, // Change this radius for the width of the circular border
+                      radius: 50,
                       backgroundColor: Theme.of(context).colorScheme.tertiary,
                       child: CircleAvatar(
-                        radius:
-                            45, // This radius is the radius of the picture in the circle avatar itself.
+                        radius: 45,
                         backgroundImage:
                             user.userImage.isNotEmpty && user.userImage != ""
                                 ? NetworkImage(user.userImage)
@@ -84,6 +83,17 @@ class _MySidebarState extends State<MySidebar> {
                       icon: Icons.chat_outlined,
                       text: "Message Users",
                       onTap: widget.onUserListTap,
+                    ),
+                    SideBarListTile(
+                      icon: Icons.cloud,
+                      text: "Weather Update",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WeatherPage()),
+                        );
+                      },
                     ),
                     // SideBarListTile(
                     //   icon: Icons.broken_image_outlined,

@@ -156,7 +156,9 @@ class _CreateGroupChatPageState extends State<CreateGroupChatPage> {
                 await ChatService().createGroupChat(groupName, memberIds);
                 showSuccessSnackBar('Group chat created successfully!');
                 _selectedUsers.clear();
-                setState(() {});
+                setState(() {
+                  Navigator.pop(context);
+                });
               },
               text: "Create Group",
             ),

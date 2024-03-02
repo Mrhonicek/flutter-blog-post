@@ -110,7 +110,6 @@ class _AddBlogPostState extends State<AddBlogPost> {
                     ),
                     onPressed: () async {
                       selectFile();
-                      // No need to call setState here
                     },
                     child: Text(
                       'Pick File',
@@ -129,8 +128,7 @@ class _AddBlogPostState extends State<AddBlogPost> {
                         const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                       ),
-                      elevation: MaterialStateProperty.all(
-                          5), // Adjust the elevation as needed
+                      elevation: MaterialStateProperty.all(5),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -152,7 +150,6 @@ class _AddBlogPostState extends State<AddBlogPost> {
                       'Submit',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
-                        // Adjust text style as needed
                       ),
                     ),
                   ),
@@ -188,7 +185,7 @@ class _AddBlogPostState extends State<AddBlogPost> {
       shrinkWrap: true,
       children: [
         SizedBox(
-          height: 250, // Adjust the height as needed
+          height: 250,
           child: Image.asset(
             'images/no_post_image.png',
             width: double.infinity,
@@ -236,33 +233,25 @@ class _AddBlogPostState extends State<AddBlogPost> {
       final urlDownload = await snapshot.ref.getDownloadURL();
       print('Download Link: $urlDownload');
 
-      // Update the database with the download URL and add a new blog post
       updateDatabase(urlDownload, context);
 
       setState(() {
-        // Reset the state if needed
         uploadTask = null;
         Navigator.pop(context);
       });
     } catch (error) {
-      // Handle errors during file upload
       print('Error uploading file: $error');
-      // You might want to show an error message to the user
 
       showAlert(
         context,
         "Error",
         "Failed to upload the file. Please try again.",
       );
-      // and handle the error accordingly.
       Navigator.pop(context);
     }
   }
 
   Future<void> updateDatabase(String imageUrl, BuildContext context) async {
-    // Add your logic to update the database with the download URL and new blog post
-
-    // Generate a unique blog ID
     final blogId = FirebaseFirestore.instance.collection("Blogs").doc().id;
     final firestoreInstance = FirebaseFirestore.instance;
 
@@ -280,8 +269,6 @@ class _AddBlogPostState extends State<AddBlogPost> {
     }).then((value) => {
           showAlert(context, "Success", "Blog Post Added!"),
         });
-
-    // based on your application flow.
   }
 
   Future updateUserImageAtDatabase(urlDownload, context) async {

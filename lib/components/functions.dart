@@ -12,16 +12,13 @@ goToPage(context, page) {
   );
 }
 
-// Format the timestamp without using external packages
 String formatTimestamp(Timestamp timestamp) {
   DateTime dateTime = timestamp.toDate();
 
-  // Format the date
   String formattedDate = "${dateTime.day.toString().padLeft(2, '0')}/"
       "${dateTime.month.toString().padLeft(2, '0')}/"
       "${dateTime.year}";
 
-  // Format the time
   String period = (dateTime.hour >= 12) ? 'PM' : 'AM';
   int hour = (dateTime.hour % 12 == 0) ? 12 : dateTime.hour % 12;
   String formattedTime = "${hour.toString().padLeft(2, '0')}:"
@@ -31,7 +28,7 @@ String formatTimestamp(Timestamp timestamp) {
 }
 
 String formatSimpleTimestamp(Timestamp timestamp) {
-  DateTime dateTime = timestamp.toDate(); // Convert Timestamp to DateTime
+  DateTime dateTime = timestamp.toDate();
   String day = DateFormat('EEE').format(dateTime);
   String time = DateFormat('h:mm a').format(dateTime);
   return '$day at $time';
@@ -40,10 +37,8 @@ String formatSimpleTimestamp(Timestamp timestamp) {
 String formatChatTimestamp(Timestamp timestamp) {
   DateTime dateTime = timestamp.toDate();
 
-  // Format the date
   String formattedDate = _getFormattedDate(dateTime);
 
-  // Format the time
   String formattedTime = _getFormattedTime(dateTime);
 
   return "$formattedDate at $formattedTime";
@@ -94,7 +89,7 @@ String formatTimestampWithTimerDisplayDelay(
     String time = DateFormat('h:mm a').format(timestamp);
     return '$day at $time';
   } else {
-    return ''; // Return an empty string if less than the specified delay
+    return '';
   }
 }
 

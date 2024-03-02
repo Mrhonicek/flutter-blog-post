@@ -37,12 +37,10 @@ class CommentWidget extends StatelessWidget {
                     color: Theme.of(context).colorScheme.tertiary,
                   ),
                   child: CircleAvatar(
-                    radius:
-                        22, // Change this radius for the width of the circular border
+                    radius: 22,
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
                     child: CircleAvatar(
-                      radius:
-                          20, // This radius is the radius of the picture in the circle avatar itself.
+                      radius: 20,
                       backgroundImage: userData!.userImage.isNotEmpty &&
                               userData.userImage != ""
                           ? NetworkImage(userData.userImage)
@@ -52,14 +50,13 @@ class CommentWidget extends StatelessWidget {
                   ),
                 ),
 
-                // Comment Content
                 Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         constraints: const BoxConstraints(
-                          maxWidth: 290, // Set your desired maximum width
+                          maxWidth: 290,
                         ),
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -139,7 +136,7 @@ class CommentWidget extends StatelessWidget {
               snapshot.data() as Map<String, dynamic>;
           return Users.fromJson(userData);
         } else {
-          return null; // User with the provided userID not found
+          return null;
         }
       });
     } catch (error) {

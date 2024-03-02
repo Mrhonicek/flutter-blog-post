@@ -68,7 +68,6 @@ class _EditBlogPostState extends State<EditBlogPost> {
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.secondary,
-                  // Adjust other text style properties as needed
                 ),
               ),
               const SizedBox(height: 20),
@@ -94,10 +93,10 @@ class _EditBlogPostState extends State<EditBlogPost> {
                   child: SizedBox(
                     height: 250,
                     child: pickedFile != null && pickedFile!.path != null
-                        ? imgExist() // Call your function to display Image.file
+                        ? imgExist()
                         : imgNotExist(
                             widget.postImage,
-                          ), // Call your function to display Image.asset
+                          ),
                   ),
                 ),
               ),
@@ -113,8 +112,7 @@ class _EditBlogPostState extends State<EditBlogPost> {
                         const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                       ),
-                      elevation: MaterialStateProperty.all(
-                          5), // Adjust the elevation as needed
+                      elevation: MaterialStateProperty.all(5),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -123,13 +121,11 @@ class _EditBlogPostState extends State<EditBlogPost> {
                     ),
                     onPressed: () async {
                       selectFile();
-                      // No need to call setState here
                     },
                     child: Text(
                       'Pick File',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
-                        // Adjust text style as needed
                       ),
                     ),
                   ),
@@ -142,8 +138,7 @@ class _EditBlogPostState extends State<EditBlogPost> {
                         const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                       ),
-                      elevation: MaterialStateProperty.all(
-                          5), // Adjust the elevation as needed
+                      elevation: MaterialStateProperty.all(5),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -151,24 +146,20 @@ class _EditBlogPostState extends State<EditBlogPost> {
                       ),
                     ),
                     onPressed: () {
-                      // Check if there are any changes in title or content
                       bool hasTextChanges =
                           contentController.text != widget.postContent ||
                               titleController.text != widget.postTitle;
 
-                      // Check if the image is updated
                       bool hasImageChanges =
                           pickedFile != null || imageUrl.isNotEmpty;
 
                       // TODO: update code here..
-                      // Check if there are any changes at all
                       if (!hasTextChanges && !hasImageChanges) {
                         showAlert(
                             context, "Info", "There's nothing to update.");
                         return;
                       }
 
-                      // Check if required fields are filled
                       if (titleController.text.isEmpty ||
                           contentController.text.isEmpty) {
                         showAlert(
@@ -176,13 +167,10 @@ class _EditBlogPostState extends State<EditBlogPost> {
                         return;
                       }
 
-                      // Decide the action based on whether a new image is selected
                       if (pickedFile != null) {
-                        // New image selected, show the upload alert and handle the image upload
                         showAlertDialogUpload(
                             context, () => uploadFile(context));
                       } else {
-                        // No new image selected, proceed with the update
                         showAlertDialogUpload(
                             context, () => updateDatabase(imageUrl, context));
                       }
@@ -213,7 +201,7 @@ class _EditBlogPostState extends State<EditBlogPost> {
   }
 
   Widget imgExist() => SizedBox(
-        height: 250, // Adjust the height as needed
+        height: 250,
         child: Image.file(
           File(pickedFile!.path!),
           width: double.infinity,
@@ -227,7 +215,7 @@ class _EditBlogPostState extends State<EditBlogPost> {
       children: [
         if (uploadImage.isNotEmpty)
           SizedBox(
-            height: 250, // Adjust the height as needed
+            height: 250,
             child: Image.network(
               uploadImage,
               fit: BoxFit.fill,
@@ -236,7 +224,7 @@ class _EditBlogPostState extends State<EditBlogPost> {
           ),
         if (uploadImage.isEmpty)
           SizedBox(
-            height: 250, // Adjust the height as needed
+            height: 250,
             child: Image.asset(
               'images/no_post_image.png',
               fit: BoxFit.cover,
@@ -291,34 +279,25 @@ class _EditBlogPostState extends State<EditBlogPost> {
       final urlDownload = await snapshot.ref.getDownloadURL();
       print('Download Link: $urlDownload');
 
-      // Update the database with the download URL and add a new blog post
       updateDatabase(urlDownload, context);
 
       setState(() {
-        // Reset the state if needed
         uploadTask = null;
         Navigator.pop(context);
       });
     } catch (error) {
-      // Handle errors during file upload
       print('Error uploading file: $error');
-      // You might want to show an error message to the user
 
       showAlert(
         context,
         "Error",
         "Failed to upload the file. Please try again.",
       );
-      // and handle the error accordingly.
       Navigator.pop(context);
     }
   }
 
   Future<void> updateDatabase(String imageUrl, BuildContext context) async {
-    // Add your logic to update the database with the download URL and new blog post
-
-    // Generate a unique blog ID
-
     final firestoreInstance = FirebaseFirestore.instance;
 
     await firestoreInstance.collection('Blogs').doc(widget.blogId).update({
@@ -329,8 +308,6 @@ class _EditBlogPostState extends State<EditBlogPost> {
           showAlert(context, "Success", "Blog Post Update Success!"),
         });
     ;
-
-    // based on your application flow.
   }
 
   Future updateUserImageAtDatabase(urlDownload, context) async {

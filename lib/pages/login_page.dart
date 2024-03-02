@@ -230,7 +230,6 @@ class _LoginState extends State<LoginPage> {
         email: username,
         password: password,
       );
-      // Check whether the widget is still mounted before calling setState
       isError = false;
       errormessage = "";
     } on FirebaseAuthException catch (e) {

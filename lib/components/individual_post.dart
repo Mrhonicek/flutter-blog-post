@@ -169,26 +169,20 @@ class _IndividualPostState extends State<IndividualPost> {
                 child: Text(
                   widget.postTitle,
                   style: TextStyle(
-                    fontSize: 16, // Adjust the font size as needed
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary, // Adjust the text color as needed
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
-              const SizedBox(
-                  height:
-                      8), // Add some vertical space between the title and content
+              const SizedBox(height: 8),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   widget.postContent,
                   style: TextStyle(
-                    fontSize: 16, // Adjust the font size as needed
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary, // Adjust the text color as needed
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -199,12 +193,11 @@ class _IndividualPostState extends State<IndividualPost> {
           ),
           SizedBox(
             child: Image.network(
-              widget.postImage, // Make sure this contains a valid image URL
+              widget.postImage,
               height: 300,
               width: double.infinity,
               fit: BoxFit.fill,
               errorBuilder: (context, error, stackTrace) {
-                // Handle errors, e.g., display a default offline image
                 return Image.asset(
                   'images/no-image.png',
                   height: 300,
@@ -225,8 +218,7 @@ class _IndividualPostState extends State<IndividualPost> {
                       setState(() {
                         isLiked = !isLiked;
                       });
-                      _updateLikes(widget.blogId,
-                          isLiked); // Call Firestore update separately
+                      _updateLikes(widget.blogId, isLiked);
                     },
                   ),
                   const SizedBox(width: 10),
@@ -235,8 +227,7 @@ class _IndividualPostState extends State<IndividualPost> {
                       setState(() {
                         isLiked = !isLiked;
                       });
-                      _updateLikes(widget.blogId,
-                          isLiked); // Call Firestore update separately
+                      _updateLikes(widget.blogId, isLiked);
                     },
                     child: Text(
                       '${likes.length} ${likes.length == 1 ? 'Like' : 'Likes'}',
@@ -352,12 +343,9 @@ class _IndividualPostState extends State<IndividualPost> {
             'likes': FieldValue.arrayRemove([widget.currentUser.uid]),
           });
         }
-      } else {
-        // print('No document found with blog_id: $blogId');
-      }
+      } else {}
     });
 
-    // Fetch updated blog data after successful Firestore update
     await FirebaseFirestore.instance
         .collection('Blogs')
         .doc(blogId)
@@ -365,23 +353,19 @@ class _IndividualPostState extends State<IndividualPost> {
         .then((doc) {
       if (doc.exists) {
         setState(() {
-          likes = (doc.data() as Map<String, dynamic>)['likes']
-              .cast<String>(); // Update state with new likes
+          likes = (doc.data() as Map<String, dynamic>)['likes'].cast<String>();
         });
       }
     });
   }
 
   void deletePost(BuildContext context) {
-    // Check if the current user is the author of the post
     if (widget.currentUser.uid == widget.authorId) {
-      // Delete the post from the 'Blogs' collection
       FirebaseFirestore.instance
           .collection('Blogs')
           .doc(widget.blogId)
           .delete();
 
-      // Show a success dialog
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -402,7 +386,7 @@ class _IndividualPostState extends State<IndividualPost> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
                 child: Text(
                   'OK',
@@ -416,7 +400,6 @@ class _IndividualPostState extends State<IndividualPost> {
         },
       );
     } else {
-      // Handle the case where the current user is not the author of the post
       // print('You are not authorized to delete this post');
     }
   }
