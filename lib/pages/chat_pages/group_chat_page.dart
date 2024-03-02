@@ -67,6 +67,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) {
     final roomTitle = widget.groupChat.roomTitle;
     final memberIds = widget.groupChat.memberIds;
+    final groupId = widget.groupChat.groupId;
     final usersFuture = getUsersFromIds(memberIds);
 
     usersFuture.then((users) {
@@ -113,6 +114,14 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 case 'help':
                   showAlert(context, "Help",
                       "Tap a message to read the message for you. \n \nLong press on your own message to delete.");
+                  break;
+                case 'delete_group_chat':
+                  showAlertDialogOnDelete(
+                    context,
+                    groupId,
+                    "We understand this might be a big decision. Deleting a group chat means losing all its messages and history. Are you ready to proceed?",
+                    (id) => deleteGroupChat(groupId),
+                  );
                   break;
                 default:
                 // Handle unexpected value
@@ -166,6 +175,23 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   ],
                 ),
               ),
+              if (_firebaseAuth.currentUser!.uid ==
+                  widget.groupChat.groupAdminId)
+                PopupMenuItem(
+                  value: 'delete_group_chat',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_forever_outlined,
+                          color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(width: 10.0),
+                      Text(
+                        'Delete Group Chat',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary),
+                      ),
+                    ],
+                  ),
+                ),
               PopupMenuItem(
                 value: 'help',
                 child: Row(
@@ -370,7 +396,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
                               if (data["sender_id"] ==
                                   _firebaseAuth.currentUser!.uid) {
                                 showAlertDialogOnDelete(
-                                    context, data["message_id"]);
+                                  context,
+                                  data["message_id"],
+                                  "Are you sure you want to delete this message?",
+                                  (id) =>
+                                      deleteGroupMessage(data["message_id"]),
+                                );
                               }
                             },
                             onTap: () {
@@ -590,7 +621,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
     );
   }
 
-  showAlertDialogOnDelete(BuildContext context, String messageId) {
+  void deleteGroupChat(String groupId) async {
+    await _chatService.deleteGroupChat(groupId);
+  }
+
+  void showAlertDialogOnDelete(
+    BuildContext context,
+    String toDeleteId,
+    String message,
+    Function(String id)
+        deleteFunction, // Pass the specific delete function as an argument
+  ) {
     Widget cancelButton = TextButton(
       child: Text(
         "Cancel",
@@ -598,9 +639,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           color: Theme.of(context).colorScheme.tertiary,
         ),
       ),
-      onPressed: () {
-        Navigator.pop(context);
-      },
+      onPressed: () => Navigator.pop(context),
     );
 
     Widget continueButton = TextButton(
@@ -612,7 +651,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       ),
       onPressed: () {
         Navigator.of(context).pop();
-        deleteGroupMessage(messageId);
+        deleteFunction(toDeleteId);
       },
     );
 
@@ -625,7 +664,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         ),
       ),
       content: Text(
-        "Are you sure you want to delete this message?",
+        message,
         style: TextStyle(
           color: Theme.of(context).colorScheme.secondary,
         ),

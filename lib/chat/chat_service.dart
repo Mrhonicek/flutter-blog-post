@@ -187,6 +187,14 @@ class ChatService extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteGroupChat(String groupId) async {
+    try {
+      await _fireStore.collection('Group_Chat_Rooms').doc(groupId).delete();
+    } catch (e) {
+      print("Error deleting group chat: $e");
+    }
+  }
+
   // ? RECEIVE GROUP MESSAGES
   Stream<QuerySnapshot> receiveGroupMessages(String groupId) {
     return _fireStore

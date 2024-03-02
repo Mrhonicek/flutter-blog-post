@@ -163,7 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
         content: TextField(
           autofocus: true,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.tertiary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
           decoration: InputDecoration(
             hintText: "Enter new $field",
