@@ -14,6 +14,14 @@ Jan Wayne Sepe
 MarkDown file.
 March 2024
 
+**
+Objective: Create a secure and efficient messenger app tailored for a specific firm, which includes integration with a public API or service from the internet.
+
+
+This app utilizes Flutter framework to create blog posts, and real-time messaging. Also added weather update API.
+This app heavily relies in Firebase services. A strong internet connection is required.
+Weather API will change themes according to various weather conditions. Temperature changes rapidly
+
 Registered users can create blog posts. Users must have an image, a title, and the description to post.
 Users can edit their post content.
 Users can delete their post.
@@ -57,6 +65,14 @@ Crucial messaging services used in this project:
 Firebase Cloud Firestore - Chat Services
 Firebase Authentication
 And other Firebase Services.
+
+**
+
+
+
+User manual:
+
+
 
 Login page:
 Upon launching the application, you will be directed to the login page.
@@ -174,3 +190,7 @@ User experience: Default theme can only be changed by the user's device by enabl
 Page theme for weather updates changes in varied weather conditions.
 Weather temperature updates rapidly every minute.
 Theme colors exclusively apply to this page, and not on the whole application’s interface. (This also applies to devices with dark mode.)
+
+
+
+
